@@ -1,0 +1,48 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+// Specify the datasource (e.g., MongoDB)
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+// Generator for Prisma Client
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id       String   @id @default(auto()) @map("_id") @db.ObjectId
+  username String   @unique
+  password String
+  role     String   @default("user")
+  // Relation to Assignment
+  assignments Assignment[] @relation("UserAssignments")
+}
+
+model Admin {
+  id       String   @id @default(auto()) @map("_id") @db.ObjectId
+  username String   @unique
+  password String
+  role     String   @default("admin")
+  // Relation to Assignment
+  assignments Assignment[] @relation("AdminAssignments")
+}
+
+model Assignment {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  task      String
+  status    String   @default("pending") // Can be "pending", "accepted", "rejected"
+  createdAt DateTime @default(now())
+  
+  // Relations to User and Admin
+  userId    String   @db.ObjectId
+  user      User     @relation("UserAssignments", fields: [userId], references: [id])
+  
+  adminId   String   @db.ObjectId
+  admin     Admin    @relation("AdminAssignments", fields: [adminId], references: [id])
+}
